@@ -1,0 +1,4 @@
+# gitignore for Advent of Code in C++
+bin/
+obj/
+input/
