@@ -67,7 +67,7 @@ int countFreq(map<char, int> &cF, int number) {
 
 int countCharDiffs(string a, string b) {
     int count = 0;
-    const int len = a.length() < b.length() ? a.length() : b.length();
+    const size_t len = a.length() < b.length() ? a.length() : b.length();
     // just being safe...
     for(size_t i=0; i<len; i++) {
         if(a[i] != b[i]) count++;
@@ -77,7 +77,7 @@ int countCharDiffs(string a, string b) {
 
 string sharedChars(string a, string b) { // this method looks familiar
     stringstream ss;
-    const int len = a.length() < b.length() ? a.length() : b.length();
+    const size_t len = a.length() < b.length() ? a.length() : b.length();
     for(size_t i=0; i<len; i++) {
         if(a[i] == b[i]) ss << a[i];
     }
