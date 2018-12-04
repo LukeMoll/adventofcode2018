@@ -51,6 +51,13 @@ class Guard {
 
         Guard(int id) : id(id) {}
 };
+std::ostream& operator<<(std::ostream &strm, Guard g) {
+    auto MostAsleepMinute = g.getMostAsleepMinute();
+    return strm << "Guard #" << g.id 
+                << ":\tTime asleep: " << g.getTotalMinutes() 
+                << " min\tMost asleep minute: '" << MostAsleepMinute.first 
+                << "\t(" << MostAsleepMinute.second << " times)";
+}
 
 enum ACTION {BEGIN, ASLEEP, WAKE};
 std::ostream& operator<<(std::ostream &strm, const ACTION g) {
@@ -138,17 +145,27 @@ int main(void) {
         previousMinutes = r.midnight_minutes;
     }
 
-    for(pair<int,Guard*> p : guards) {
-        auto MostAsleepMinute = p.second->getMostAsleepMinute();
-        cout << "Guard #" << p.first << ":\tTime asleep: " << p.second->getTotalMinutes() << " min\tMost asleep minute: '" << MostAsleepMinute.first << "\t(" << MostAsleepMinute.second << " times)" <<endl;
-    }
+    vector<pair<int,Guard*>> guards_sorted;
+    copy(guards.begin(), guards.end(), back_inserter(guards_sorted));
 
-    // Need to sort but GCC is bein a bicc
-    // I'll do it with my eyes
-    cout << "\n(Part 1)\tFind the Guard with the highest Time asleep\n"
-                  "\t\tand multiply the #ID with the 'minute" << endl;
-    cout << "(Part 2)\tFind the Guard with the most times asleep\n"
-                  "\t\tand multiply the #ID with the 'minute" << endl;
+    // Sort for Strategy 1
+    sort(guards_sorted.begin(), guards_sorted.end(), [](pair<int, Guard*> &p1, pair<int, Guard*> &p2) {
+       return p1.second->getTotalMinutes() > p2.second->getTotalMinutes();
+    });
+    Guard* part1 = guards_sorted.front().second;
+
+    sort(guards_sorted.begin(), guards_sorted.end(), [](pair<int, Guard*> &p1, pair<int, Guard*> &p2) {
+       return p1.second->getMostAsleepMinute().second > p2.second->getMostAsleepMinute().second;
+    });
+    Guard* part2 = guards_sorted.front().second;
+
+    auto p1_mam = part1->getMostAsleepMinute();
+    cout << "(Part 1) Guard #" << part1->id << " was asleep " << part1->getTotalMinutes() << " minutes in total, with their most frequent minute being :" << p1_mam.first << "." << endl;
+    cout << "         " << part1->id << " * " << p1_mam.first << " = " << part1->id * p1_mam.first << endl;
+
+    auto p2_mam = part2->getMostAsleepMinute();
+    cout << "(Part 2) Guard #" << part2->id << " was asleep " << p2_mam.second << " times on their most frequent minute, :" << p2_mam.first << "." << endl;
+    cout << "         " << part2->id << " * " << p2_mam.first << " = " << part2->id * p2_mam.second << endl;
 
     for(pair<int,Guard*> p : guards) {
         delete p.second;
