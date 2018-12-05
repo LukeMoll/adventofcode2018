@@ -11,6 +11,7 @@ bool react(string&);
 bool stripUnits(string&, char);
 
 int main(void) {
+    cout << "Day 05 - Alchemical Reduction" << endl;
     ifstream puzzleInput = AOC::getInputStream(5);
     string input;
     puzzleInput >> input;
