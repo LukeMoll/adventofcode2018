@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <vector>
 
 using namespace std;
 
@@ -10,23 +11,35 @@ bool react(string&);
 bool stripUnits(string&, char);
 
 int main(void) {
-    const string input = "dabAcCaCBAcCcaDA"; // replace this with puzzle input -- file-based to follow
+    ifstream puzzleInput = AOC::getInputStream(5);
+    string input;
+    puzzleInput >> input;
 
     string p1_input = input;
     while(react(p1_input)) {
     }
-    cout << "(Part 1) " << input.length() << " units remain." << endl;
+    cout << "(Part 1) " << p1_input.length() << " units remain." << endl;
     
     // let's try to do this with as few copies in memory as possible
     string p2_input;
+    vector<pair<char, size_t>> p2_results;
+    cout << "[" << flush;
     for(char c = 'A'; c <= 'Z'; c++) {
         p2_input = input;
         if(stripUnits(p2_input, c)) {
-            cout << " " << c << ": " << p2_input.length() << " (-" << input.length() - p2_input.length() << ")";
             while(react(p2_input)) {};
-            cout << " -> " << p2_input.length() << " units" << endl;
+            p2_results.push_back(pair<char, size_t>(c, p2_input.length()));
         }
+        cout << "." << flush;
     }
+    cout << "]" << endl;
+
+    sort(p2_results.begin(), p2_results.end(), [](const pair<char,int> &p1, const pair<char,int> &p2) {
+        return p1.second < p2.second;
+    });
+
+    auto p2_answer = p2_results.front();
+    cout << "(Part 2) Removing '" <<  p2_answer.first << "' gives " << p2_answer.second << " units." << endl;
     return 0;
 }
 
