@@ -45,12 +45,15 @@ int main(void) {
             if(isInRegion(c, coords, PART2_RADIUS)) {p2_area++;}
 
             int idx = owns(c, coords);
-            if(x==minX || x==maxX || y==minY || y==maxY) {
-                p1_areas[idx] = -1; // using -1 as infinity
-            }
-            else if(idx >= 0 && p1_areas[idx] >= 0) { 
-                // only increment if coord not infinite
-                p1_areas[idx]++;
+            if(idx >= 0) {
+                // only non-shared areas are counted
+                if(x==minX || x==maxX || y==minY || y==maxY) {
+                    p1_areas.at(idx) = -1; // using -1 as infinity
+                }
+                else if(p1_areas.at(idx) >= 0) { 
+                    // only increment if coord not infinite
+                    p1_areas.at(idx)++;
+                }
             }
         }
     }
