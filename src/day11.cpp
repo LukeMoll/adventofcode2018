@@ -9,7 +9,7 @@ using namespace std;
 typedef pair<int,int> Coord;
 struct CoordHash {
     size_t operator()(Coord const& pair) const {
-        return pair.first * 3000 + pair.second; // works for 300x300 I guess?
+        return pair.first * 301 + pair.second; // works for 300x300 I guess?
     }
 };
 typedef unordered_map<Coord, int, CoordHash> PowerGrid;
@@ -22,7 +22,9 @@ void assertPower(unsigned short x, unsigned short y, unsigned serial, int expect
 int powerLevel(unsigned short x, unsigned short y, unsigned serial);
 PowerGrid makeGrid(unsigned serial);
 PowerGrid reduceGridNxN(PowerGrid &grid, unsigned short reduc);
+PowerGrid reduceIncremental(PowerGrid &grid, PowerGrid reduced, const unsigned short reduc);
 pair<Coord, int> getLargestCoord(PowerGrid &grid);
+bool shouldAbandon(const unsigned short reduc, int currentTotal, int maxTotal);
 void printGrid(PowerGrid &grid, unsigned short xmin, unsigned short xmax, unsigned short ymin, unsigned short ymax);
 
 
@@ -36,15 +38,20 @@ int main(void) {
     auto l = getLargestCoord(reduced);
     cout << "(Part 1) Largest 3x3 has top-left at " << l.first << " with total power " << l.second << endl;
 
-    // this next bit is L O N G, need to do binary search or something.
     // results tend to be within 30x30
     vector<tuple<Coord,unsigned short, int>> results;
     results.reserve(300);
-    for(unsigned short N=1; N<=300; N++) {
-        reduced = reduceGridNxN(grid, N);
+    int maxTotal = 0;
+    for(unsigned short N=1; N<300; N++) { // let's be honest, the answer won't be N=300
+        reduced = reduceIncremental(grid, reduced, N);
         auto l = getLargestCoord(reduced);
         results.push_back(make_tuple(l.first, N, l.second));
         cout << N << "x" << N << ":\t " << l.first << " with " << l.second << endl;
+        if(l.second > maxTotal) {maxTotal = l.second;}
+        else if(shouldAbandon(N, l.second, maxTotal)) {
+            cout << "Abandoning - best solution already found!" << endl;
+            break;
+        }
     }
 
     return 0;
@@ -79,7 +86,6 @@ PowerGrid makeGrid(unsigned serial) {
 
 PowerGrid reduceGridNxN(PowerGrid &grid, const unsigned short reduc) {
     PowerGrid reduced;
-    // const int reduc = 3;?
     for(int x=1; x<=300 - reduc; x++) {
         for(int y=1; y<=300 - reduc; y++) {
             int cellTotal = 0;
@@ -92,6 +98,47 @@ PowerGrid reduceGridNxN(PowerGrid &grid, const unsigned short reduc) {
         }  
     }
     return reduced;
+}
+
+// this is a HUGE improvement -- but we can go better
+PowerGrid reduceIncremental(PowerGrid &grid, PowerGrid reduced, const unsigned short reduc) {
+    // *** this block grows the fastest / is the slowest part on larger inputs
+    // outer: (300-reduc)^2 * inner
+    // which is O(1) * inner
+    // with a massive leading constant
+    for(int x=1; x<=300 - reduc; x++) {
+        for(int y=1; y<=300 - reduc; y++) {
+            // inner: linear in `reduc`
+            int increase = 0;
+            Coord c = {0,y+reduc};
+            for(int i=0; i<= reduc; i++) {
+                c.first = x+i;
+                increase += grid[c];
+            }
+            c.first = x+reduc;
+            for(int j=0; j< reduc; j++) {
+                c.second = y+j;
+                increase += grid[c];
+            }
+            reduced[{x,y}] += increase;
+        }
+    }
+    // ***
+    Coord c = {0, 301-reduc};
+    for(int x=1; x <= 301 - reduc; x++) {
+        c.first = x;
+        reduced.erase(c);
+    }
+    c.first = 301-reduc;
+    for(int y=1; y <= 301 - reduc; y++) {
+        c.second = y;
+        reduced.erase(c);
+    }
+    return reduced;
+}
+
+bool shouldAbandon(const unsigned short reduc, int currentTotal, int maxTotal) {
+    return (450000 - 3000 * reduc) + currentTotal < maxTotal;
 }
 
 pair<Coord, int> getLargestCoord(PowerGrid &grid) {
