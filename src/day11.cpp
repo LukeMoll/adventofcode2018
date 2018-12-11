@@ -1,3 +1,4 @@
+#include "aocutils.hpp"
 #include <iostream>
 #include <unordered_map>
 #include <algorithm>
@@ -31,12 +32,15 @@ void printGrid(PowerGrid &grid, unsigned short xmin, unsigned short xmax, unsign
 int main(void) {
     cout << "Day 11 - Chronal Charge" << endl;
 
-    const unsigned serial = 18; // TODO actually use day11.txt
+    // const unsigned serial = 18; // TODO actually use day11.txt
+    unsigned serial;
+    auto input = AOC::getLines(11);
+    sscanf(input.front().c_str(), "%u", &serial);
 
     PowerGrid grid = makeGrid(serial);
     PowerGrid reduced = reduceGridNxN(grid, 3);
-    auto l = getLargestCoord(reduced);
-    cout << "(Part 1) Largest 3x3 has top-left at " << l.first << " with total power " << l.second << endl;
+    auto l1 = getLargestCoord(reduced);
+    cout << "(Part 1) Largest 3x3 has top-left at " << l1.first << " with total power " << l1.second << endl;
 
     // results tend to be within 30x30
     vector<tuple<Coord,unsigned short, int>> results;
@@ -44,11 +48,11 @@ int main(void) {
     int maxTotal = 0;
     for(unsigned short N=1; N<300; N++) { // let's be honest, the answer won't be N=300
         reduced = reduceIncremental(grid, reduced, N);
-        auto l = getLargestCoord(reduced);
-        results.push_back(make_tuple(l.first, N, l.second));
-        cout << N << "x" << N << ":\t " << l.first << " with " << l.second << endl;
-        if(l.second > maxTotal) {maxTotal = l.second;}
-        else if(shouldAbandon(N, l.second, maxTotal)) {
+        auto l2 = getLargestCoord(reduced);
+        results.push_back(make_tuple(l2.first, N, l2.second));
+        cout << N << "x" << N << ":\t " << l2.first << " with " << l2.second << endl;
+        if(l2.second > maxTotal) {maxTotal = l2.second;}
+        else if(shouldAbandon(N, l2.second, maxTotal)) {
             cout << "Abandoning - best solution already found!" << endl;
             break;
         }
@@ -104,8 +108,6 @@ PowerGrid reduceGridNxN(PowerGrid &grid, const unsigned short reduc) {
 PowerGrid reduceIncremental(PowerGrid &grid, PowerGrid reduced, const unsigned short reduc) {
     // *** this block grows the fastest / is the slowest part on larger inputs
     // outer: (300-reduc)^2 * inner
-    // which is O(1) * inner
-    // with a massive leading constant
     for(int x=1; x<=300 - reduc; x++) {
         for(int y=1; y<=300 - reduc; y++) {
             // inner: linear in `reduc`
